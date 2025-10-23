@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Bitmap.CompressFormat
 import android.graphics.BitmapFactory
+import com.jasmeet.customimageloader.decoder.AnimatedImageDecoderFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -15,24 +16,43 @@ class DiskCache(private val context: Context) {
         if (!exists()) mkdirs()
     }
 
-    private fun urlToFilename(url: String, isGif: Boolean = false): String {
+    private fun urlToFilename(url: String, extension: String = ".png"): String {
         val md = MessageDigest.getInstance("MD5")
         val hash = md.digest(url.toByteArray())
-        val ext = if (isGif) ".gif" else ".png"
-        return hash.joinToString("") { "%02x".format(it) } + ext
+        return hash.joinToString("") { "%02x".format(it) } + extension
     }
 
     suspend fun get(url: String): ImageData? = withContext(Dispatchers.IO) {
         try {
-            // Try GIF first
-            val gifFile = File(cacheDir, urlToFilename(url, true))
-            if (gifFile.exists()) {
-                val bytes = gifFile.readBytes()
-                return@withContext ImageData.AnimatedGif(bytes, countGifFrames(bytes))
+            // Try animated formats (GIF, WebP)
+            for (ext in listOf(".gif", ".webp")) {
+                val animatedFile = File(cacheDir, urlToFilename(url, ext))
+                if (animatedFile.exists()) {
+                    val bytes = animatedFile.readBytes()
+                    val format = AnimatedImageDecoderFactory.detectFormat(bytes)
+
+                    if (format != null) {
+                        try {
+                            val decoder = AnimatedImageDecoderFactory.createDecoder(bytes, format)
+                            return@withContext ImageData.AnimatedImage(
+                                bytes = bytes,
+                                format = format,
+                                frameCount = decoder.frameCount,
+                                width = decoder.width,
+                                height = decoder.height
+                            ).also {
+                                decoder.release()
+                            }
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                            // Continue to try other formats or static image
+                        }
+                    }
+                }
             }
 
             // Try static image
-            val file = File(cacheDir, urlToFilename(url, false))
+            val file = File(cacheDir, urlToFilename(url, ".png"))
             if (file.exists()) {
                 val bitmap = BitmapFactory.decodeFile(file.absolutePath)
                 return@withContext if (bitmap != null) ImageData.StaticImage(bitmap) else null
@@ -48,27 +68,23 @@ class DiskCache(private val context: Context) {
         try {
             when (data) {
                 is ImageData.StaticImage -> {
-                    val file = File(cacheDir, urlToFilename(url, false))
+                    val file = File(cacheDir, urlToFilename(url, ".png"))
                     FileOutputStream(file).use { out ->
                         data.bitmap.compress(CompressFormat.PNG, 90, out)
                     }
                 }
-                is ImageData.AnimatedGif -> {
-                    val file = File(cacheDir, urlToFilename(url, true))
+                is ImageData.AnimatedImage -> {
+                    val ext = when (data.format) {
+                        AnimatedFormat.GIF -> ".gif"
+                        AnimatedFormat.WEBP -> ".webp"
+                    }
+                    val file = File(cacheDir, urlToFilename(url, ext))
                     file.writeBytes(data.bytes)
                 }
             }
         } catch (e: Exception) {
             e.printStackTrace()
         }
-    }
-
-    private fun countGifFrames(bytes: ByteArray): Int {
-        var count = 0
-        for (i in 0 until bytes.size - 1) {
-            if (bytes[i] == 0x2C.toByte()) count++
-        }
-        return maxOf(count, 1)
     }
 
     fun clear() {

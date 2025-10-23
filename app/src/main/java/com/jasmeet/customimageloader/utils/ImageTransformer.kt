@@ -23,8 +23,8 @@ sealed class ImageTransformation {
 
 object ImageTransformer {
     fun apply(data: ImageData, transformation: ImageTransformation, context: Context? = null): ImageData {
-        // GIFs don't support transformations (would need frame-by-frame processing)
-        if (data is ImageData.AnimatedGif) return data
+        // Animated images don't support transformations (would need frame-by-frame processing)
+        if (data is ImageData.AnimatedImage) return data
 
         if (data !is ImageData.StaticImage) return data
 

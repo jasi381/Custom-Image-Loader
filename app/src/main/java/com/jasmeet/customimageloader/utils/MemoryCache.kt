@@ -11,7 +11,11 @@ object MemoryCache {
         override fun sizeOf(key: String, data: ImageData): Int {
             return when (data) {
                 is ImageData.StaticImage -> data.bitmap.byteCount / 1024
-                is ImageData.AnimatedGif -> data.bytes.size / 1024
+                is ImageData.AnimatedImage -> {
+                    // Only count bytes, not decoded frames (lazy decoding)
+                    // Add small overhead for decoder metadata
+                    (data.bytes.size / 1024) + 100 // 100KB overhead estimate
+                }
             }
         }
     }

@@ -59,7 +59,7 @@ fun ExampleScreen(modifier: Modifier) {
         modifier = modifier
             .fillMaxSize()
             .padding(16.dp)
-            .verticalScroll(rememberScrollState()),
+        .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         // Animated GIF (no transformations for GIFs)
