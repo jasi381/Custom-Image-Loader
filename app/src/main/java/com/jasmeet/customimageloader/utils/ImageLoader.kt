@@ -14,23 +14,24 @@ class ImageLoader(private val context: Context) {
     suspend fun load(
         url: String,
         transformation: ImageTransformation = ImageTransformation.None
-    ): Bitmap? {
+    ): ImageData? {
         val cacheKey = "$url-${transformation.hashCode()}"
 
         // 1. Check memory cache
         MemoryCache.get(cacheKey)?.let { return it }
 
         // 2. Check disk cache
-        diskCache.get(cacheKey)?.let { bitmap ->
-            MemoryCache.put(cacheKey, bitmap)
-            return bitmap
+        diskCache.get(url)?.let { data ->
+            val transformed = ImageTransformer.apply(data, transformation, context)
+            MemoryCache.put(cacheKey, transformed)
+            return transformed
         }
 
         // 3. Download and transform
-        downloader.download(url)?.let { bitmap ->
-            val transformed = ImageTransformer.apply(bitmap, transformation, context)
-            transformed?.let { MemoryCache.put(cacheKey, it) }
-            transformed?.let { diskCache.put(cacheKey, it) }
+        downloader.download(url)?.let { data ->
+            val transformed = ImageTransformer.apply(data, transformation, context)
+            MemoryCache.put(cacheKey, transformed)
+            diskCache.put(url, data) // Store original
             return transformed
         }
 

@@ -15,30 +15,60 @@ class DiskCache(private val context: Context) {
         if (!exists()) mkdirs()
     }
 
-    private fun urlToFilename(url: String): String {
+    private fun urlToFilename(url: String, isGif: Boolean = false): String {
         val md = MessageDigest.getInstance("MD5")
         val hash = md.digest(url.toByteArray())
-        return hash.joinToString("") { "%02x".format(it) }
+        val ext = if (isGif) ".gif" else ".png"
+        return hash.joinToString("") { "%02x".format(it) } + ext
     }
 
-    suspend fun get(url: String): Bitmap? = withContext(Dispatchers.IO) {
+    suspend fun get(url: String): ImageData? = withContext(Dispatchers.IO) {
         try {
-            val file = File(cacheDir, urlToFilename(url))
-            if (file.exists()) BitmapFactory.decodeFile(file.absolutePath) else null
+            // Try GIF first
+            val gifFile = File(cacheDir, urlToFilename(url, true))
+            if (gifFile.exists()) {
+                val bytes = gifFile.readBytes()
+                return@withContext ImageData.AnimatedGif(bytes, countGifFrames(bytes))
+            }
+
+            // Try static image
+            val file = File(cacheDir, urlToFilename(url, false))
+            if (file.exists()) {
+                val bitmap = BitmapFactory.decodeFile(file.absolutePath)
+                return@withContext if (bitmap != null) ImageData.StaticImage(bitmap) else null
+            }
+
+            null
         } catch (e: Exception) {
             null
         }
     }
 
-    suspend fun put(url: String, bitmap: Bitmap) = withContext(Dispatchers.IO) {
+    suspend fun put(url: String, data: ImageData) = withContext(Dispatchers.IO) {
         try {
-            val file = File(cacheDir, urlToFilename(url))
-            FileOutputStream(file).use { out ->
-                bitmap.compress(CompressFormat.PNG, 90, out)
+            when (data) {
+                is ImageData.StaticImage -> {
+                    val file = File(cacheDir, urlToFilename(url, false))
+                    FileOutputStream(file).use { out ->
+                        data.bitmap.compress(CompressFormat.PNG, 90, out)
+                    }
+                }
+                is ImageData.AnimatedGif -> {
+                    val file = File(cacheDir, urlToFilename(url, true))
+                    file.writeBytes(data.bytes)
+                }
             }
         } catch (e: Exception) {
             e.printStackTrace()
         }
+    }
+
+    private fun countGifFrames(bytes: ByteArray): Int {
+        var count = 0
+        for (i in 0 until bytes.size - 1) {
+            if (bytes[i] == 0x2C.toByte()) count++
+        }
+        return maxOf(count, 1)
     }
 
     fun clear() {

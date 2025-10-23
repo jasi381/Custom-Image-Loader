@@ -14,14 +14,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.jasmeet.customimageloader.ui.theme.AsyncImage
 import com.jasmeet.customimageloader.ui.theme.CustomImageLoaderTheme
@@ -45,21 +43,6 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    CustomImageLoaderTheme {
-        Greeting("Android")
-    }
-}
 
 @Composable
 fun ExampleScreen(modifier: Modifier) {
@@ -69,7 +52,7 @@ fun ExampleScreen(modifier: Modifier) {
 
     // Prefetch on screen load
     LaunchedEffect(Unit) {
-        imageLoader.prefetch("https://images.unsplash.com/photo-1760681554364-50e8cf5efdb5?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxmZWF0dXJlZC1waG90b3MtZmVlZHwxMnx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=60&w=900", scope)
+        imageLoader.prefetch("https://picsum.photos/400/600", scope)
     }
 
     Column(
@@ -79,9 +62,18 @@ fun ExampleScreen(modifier: Modifier) {
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+        // Animated GIF (no transformations for GIFs)
+        AsyncImage(
+            url = "https://media.giphy.com/media/3o7abKhOpu0NwenH3O/giphy.gif",
+            contentDescription = "Animated GIF",
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(200.dp)
+        )
+
         // Fade animation with rounded corners
         AsyncImage(
-            url = "https://images.unsplash.com/photo-1760681554364-50e8cf5efdb5?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxmZWF0dXJlZC1waG90b3MtZmVlZHwxMnx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=60&w=900",
+            url = "https://picsum.photos/400/300",
             contentDescription = "Rounded image",
             modifier = Modifier
                 .fillMaxWidth()
@@ -92,7 +84,7 @@ fun ExampleScreen(modifier: Modifier) {
 
         // Scale animation with circle
         AsyncImage(
-            url = "https://images.unsplash.com/photo-1760681554364-50e8cf5efdb5?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxmZWF0dXJlZC1waG90b3MtZmVlZHwxMnx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=60&w=900",
+            url = "https://picsum.photos/400/400",
             contentDescription = "Circle image",
             modifier = Modifier.size(150.dp),
             transformation = ImageTransformation.Circle(
@@ -104,7 +96,7 @@ fun ExampleScreen(modifier: Modifier) {
 
         // Slide up animation
         AsyncImage(
-            url = "https://images.unsplash.com/photo-1760681554364-50e8cf5efdb5?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxmZWF0dXJlZC1waG90b3MtZmVlZHwxMnx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=60&w=900",
+            url = "https://picsum.photos/500/300",
             contentDescription = "Slide up",
             modifier = Modifier
                 .fillMaxWidth()
@@ -112,15 +104,12 @@ fun ExampleScreen(modifier: Modifier) {
             animation = ImageAnimation.SLIDE_UP
         )
 
-        // Rotate animation with blur
+        // Another GIF example
         AsyncImage(
-            url = "https://images.unsplash.com/photo-1760681554364-50e8cf5efdb5?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxmZWF0dXJlZC1waG90b3MtZmVlZHwxMnx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=60&w=900",
-            contentDescription = "Blurred image",
+            url = "https://media.giphy.com/media/26BROrSHlmyzzHf3i/giphy.gif",
+            contentDescription = "Cat GIF",
             modifier = Modifier
-                .fillMaxWidth()
-                .height(150.dp),
-            transformation = ImageTransformation.Blur(20f),
-            animation = ImageAnimation.ROTATE
+                .size(150.dp)
         )
     }
 }

@@ -22,12 +22,23 @@ sealed class ImageTransformation {
 }
 
 object ImageTransformer {
-    fun apply(bitmap: Bitmap, transformation: ImageTransformation, context: Context? = null): Bitmap? {
+    fun apply(data: ImageData, transformation: ImageTransformation, context: Context? = null): ImageData {
+        // GIFs don't support transformations (would need frame-by-frame processing)
+        if (data is ImageData.AnimatedGif) return data
+
+        if (data !is ImageData.StaticImage) return data
+
         return when (transformation) {
-            is ImageTransformation.None -> bitmap
-            is ImageTransformation.RoundedCorners -> applyRoundedCorners(bitmap, transformation.radius)
-            is ImageTransformation.Circle -> applyCircle(bitmap, transformation.borderWidth, transformation.borderColor)
-            is ImageTransformation.Blur -> applyBlur(bitmap, transformation.radius, context)
+            is ImageTransformation.None -> data
+            is ImageTransformation.RoundedCorners -> {
+                ImageData.StaticImage(applyRoundedCorners(data.bitmap, transformation.radius))
+            }
+            is ImageTransformation.Circle -> {
+                ImageData.StaticImage(applyCircle(data.bitmap, transformation.borderWidth, transformation.borderColor))
+            }
+            is ImageTransformation.Blur -> {
+                ImageData.StaticImage(applyBlur(data.bitmap, transformation.radius, context))
+            }
         }
     }
 
@@ -72,7 +83,7 @@ object ImageTransformer {
         return output
     }
 
-    private fun applyBlur(bitmap: Bitmap, radius: Float, context: Context?): Bitmap? {
+    private fun applyBlur(bitmap: Bitmap, radius: Float, context: Context?): Bitmap {
         if (context == null) return bitmap
 
         return try {
@@ -92,6 +103,7 @@ object ImageTransformer {
             blurred
         } catch (e: Exception) {
             bitmap
-        }
+        }!!
     }
 }
+

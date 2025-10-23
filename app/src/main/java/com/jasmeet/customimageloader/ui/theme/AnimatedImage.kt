@@ -22,7 +22,7 @@ import androidx.compose.ui.layout.ContentScale
 import com.jasmeet.customimageloader.utils.ImageAnimation
 
 @Composable
- fun AnimatedImage(
+internal fun AnimatedImage(
     bitmap: Bitmap,
     contentDescription: String?,
     contentScale: ContentScale,

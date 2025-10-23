@@ -16,6 +16,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.jasmeet.customimageloader.utils.ImageAnimation
+import com.jasmeet.customimageloader.utils.ImageData
 import com.jasmeet.customimageloader.utils.ImageLoader
 import com.jasmeet.customimageloader.utils.ImageState
 import com.jasmeet.customimageloader.utils.ImageTransformation
@@ -45,9 +46,9 @@ fun AsyncImage(
 
     LaunchedEffect(url) {
         imageState = ImageState.Loading
-        val bitmap = imageLoader.load(url, transformation)
-        imageState = if (bitmap != null) {
-            ImageState.Success(bitmap)
+        val data = imageLoader.load(url, transformation)
+        imageState = if (data != null) {
+            ImageState.Success(data)
         } else {
             ImageState.Error("Failed to load image")
         }
@@ -57,12 +58,24 @@ fun AsyncImage(
         when (val state = imageState) {
             is ImageState.Loading -> placeholder()
             is ImageState.Success -> {
-                AnimatedImage(
-                    bitmap = state.bitmap,
-                    contentDescription = contentDescription,
-                    contentScale = contentScale,
-                    animation = animation
-                )
+                when (val data = state.data) {
+                    is ImageData.StaticImage -> {
+                        AnimatedImage(
+                            bitmap = data.bitmap,
+                            contentDescription = contentDescription,
+                            contentScale = contentScale,
+                            animation = animation
+                        )
+                    }
+                    is ImageData.AnimatedGif -> {
+                        GifImage(
+                            gifBytes = data.bytes,
+                            contentDescription = contentDescription,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = contentScale
+                        )
+                    }
+                }
             }
             is ImageState.Error -> error(state.message)
         }

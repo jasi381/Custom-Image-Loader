@@ -7,15 +7,18 @@ object MemoryCache {
     private val maxMemory = (Runtime.getRuntime().maxMemory() / 1024).toInt()
     private val cacheSize = maxMemory / 8
 
-    private val cache = object : LruCache<String, Bitmap>(cacheSize) {
-        override fun sizeOf(key: String, bitmap: Bitmap): Int {
-            return bitmap.byteCount / 1024
+    private val cache = object : LruCache<String, ImageData>(cacheSize) {
+        override fun sizeOf(key: String, data: ImageData): Int {
+            return when (data) {
+                is ImageData.StaticImage -> data.bitmap.byteCount / 1024
+                is ImageData.AnimatedGif -> data.bytes.size / 1024
+            }
         }
     }
 
-    fun get(key: String): Bitmap? = cache.get(key)
-    fun put(key: String, bitmap: Bitmap) {
-        if (get(key) == null) cache.put(key, bitmap)
+    fun get(key: String): ImageData? = cache.get(key)
+    fun put(key: String, data: ImageData) {
+        if (get(key) == null) cache.put(key, data)
     }
     fun clear() = cache.evictAll()
 }
