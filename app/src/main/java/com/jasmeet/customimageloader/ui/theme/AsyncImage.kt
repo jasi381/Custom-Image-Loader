@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.jasmeet.customimageloader.decoder.AnimatedImageDecoderFactory
 import com.jasmeet.customimageloader.utils.ImageAnimation
 import com.jasmeet.customimageloader.utils.ImageData
 import com.jasmeet.customimageloader.utils.ImageLoader
@@ -67,9 +68,14 @@ fun AsyncImage(
                             animation = animation
                         )
                     }
-                    is ImageData.AnimatedGif -> {
-                        GifImage(
-                            gifBytes = data.bytes,
+                    is ImageData.AnimatedImage -> {
+                        // Create decoder and render using new AnimatedImageRenderer
+                        val decoder = remember(data) {
+                            AnimatedImageDecoderFactory.createDecoder(data.bytes, data.format)
+                        }
+
+                        AnimatedImageRenderer(
+                            decoder = decoder,
                             contentDescription = contentDescription,
                             modifier = Modifier.fillMaxSize(),
                             contentScale = contentScale
