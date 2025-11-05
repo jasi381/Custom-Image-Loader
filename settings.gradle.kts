@@ -21,4 +21,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "Custom Image Loader"
 include(":app")
+include(":imageloader")
  

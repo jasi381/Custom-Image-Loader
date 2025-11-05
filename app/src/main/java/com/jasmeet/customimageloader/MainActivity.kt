@@ -21,11 +21,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import com.jasmeet.customimageloader.ui.theme.AsyncImage
-import com.jasmeet.customimageloader.ui.theme.CustomImageLoaderTheme
-import com.jasmeet.customimageloader.utils.ImageAnimation
-import com.jasmeet.customimageloader.utils.ImageLoader
-import com.jasmeet.customimageloader.utils.ImageTransformation
+import com.jasmeet.imageloader.ui.theme.AsyncImage
+import com.jasmeet.imageloader.ui.theme.CustomImageLoaderTheme
+import com.jasmeet.imageloader.utils.ImageAnimation
+import com.jasmeet.imageloader.utils.ImageLoader
+import com.jasmeet.imageloader.utils.ImageTransformation
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

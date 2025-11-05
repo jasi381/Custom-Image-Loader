@@ -1,0 +1,9 @@
+jdk:
+  - openjdk17
+
+before_install:
+  - ./scripts/prepareJitpackEnvironment.sh || true
+
+install:
+  - echo "Running custom install command"
+  - ./gradlew clean :imageloader:publishToMavenLocal -Pgroup=com.github.jasi381
