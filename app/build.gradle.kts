@@ -42,6 +42,9 @@ android {
 }
 
 dependencies {
+    // Image Loader Library
+    implementation(project(":imageloader"))
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
